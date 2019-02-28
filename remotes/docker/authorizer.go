@@ -180,7 +180,9 @@ type postTokenResponse struct {
 
 func (a *dockerAuthorizer) fetchTokenWithOAuth(ctx context.Context, to tokenOptions) (string, error) {
 	form := url.Values{}
-	form.Set("scope", strings.Join(to.scopes, " "))
+	for _, scope := range to.scopes {
+		form.Add("scope", scope)
+	}
 	form.Set("service", to.service)
 	// TODO: Allow setting client_id
 	form.Set("client_id", "containerd-client")
