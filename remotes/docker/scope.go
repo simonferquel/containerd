@@ -46,12 +46,18 @@ func repositoryScope(refspec reference.Spec, push bool) (string, error) {
 type tokenScopesKey struct{}
 
 // contextWithRepositoryScope returns a context with tokenScopesKey{} and the repository scope value.
-func contextWithRepositoryScope(ctx context.Context, refspec reference.Spec, push bool) (context.Context, error) {
+func contextWithRepositoryScope(ctx context.Context, refspec reference.Spec, push bool, combineWithExistingScopes bool) (context.Context, error) {
 	s, err := repositoryScope(refspec, push)
 	if err != nil {
 		return nil, err
 	}
-	return context.WithValue(ctx, tokenScopesKey{}, []string{s}), nil
+	scopes := []string{s}
+	if combineWithExistingScopes {
+		if existing := ctx.Value(tokenScopesKey{}); existing != nil {
+			scopes = append(existing.([]string), s)
+		}
+	}
+	return context.WithValue(ctx, tokenScopesKey{}, scopes), nil
 }
 
 type tokenScope struct {
